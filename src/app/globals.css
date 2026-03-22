@@ -1,0 +1,66 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
+@import "tailwindcss";
+
+@theme {
+  /* 파스텔 색상 팔레트 */
+  --color-cream: #FFF8F0;
+  --color-ivory: #FFFBF5;
+  --color-navy: #2D3561;
+  --color-pastel-pink: #FFB3C6;
+  --color-pastel-pink-dark: #FF8FAB;
+  --color-pastel-blue: #87CEEB;
+  --color-pastel-blue-dark: #5BB8E0;
+  --color-pastel-mint: #98E4D4;
+  --color-pastel-mint-dark: #6DD4C0;
+  --color-pastel-yellow: #FFE599;
+  --color-pastel-yellow-dark: #FFD966;
+  --color-pastel-purple: #C9B8F5;
+  --color-pastel-lavender: #E8E0FF;
+
+  /* 폰트 */
+  --font-nunito: 'Nunito', sans-serif;
+
+  /* 테두리 반경 */
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+  --radius-3xl: 2rem;
+}
+
+body {
+  background-color: var(--color-cream);
+  color: var(--color-navy);
+  font-family: var(--font-nunito);
+  line-height: 1.8;
+}
+
+/* 읽기 하이라이트 애니메이션 */
+@keyframes highlight-pulse {
+  0%, 100% { background-color: var(--color-pastel-yellow); }
+  50% { background-color: var(--color-pastel-yellow-dark); }
+}
+
+.word-highlight {
+  animation: highlight-pulse 0.6s ease-in-out;
+  border-radius: 4px;
+  padding: 0 2px;
+}
+
+/* 버튼 바운스 애니메이션 */
+@keyframes bounce-in {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+
+.btn-bounce:active {
+  animation: bounce-in 0.2s ease-in-out;
+}
+
+/* 부드러운 그림자 */
+.shadow-pastel {
+  box-shadow: 0 4px 20px rgba(135, 206, 235, 0.25);
+}
+
+.shadow-pastel-lg {
+  box-shadow: 0 8px 32px rgba(135, 206, 235, 0.3);
+}
