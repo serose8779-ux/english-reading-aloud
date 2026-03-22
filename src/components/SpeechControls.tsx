@@ -18,8 +18,8 @@ interface SpeechControlsProps {
 
 const RATES: { value: SpeechRate; label: string; emoji: string }[] = [
   { value: 0.7, label: "느리게", emoji: "🐢" },
-  { value: 1.0, label: "보통", emoji: "🐇" },
-  { value: 1.3, label: "빠르게", emoji: "🚀" },
+  { value: 0.85, label: "보통", emoji: "🐇" },
+  { value: 1.0, label: "빠르게", emoji: "🚀" },
 ];
 
 export default function SpeechControls({

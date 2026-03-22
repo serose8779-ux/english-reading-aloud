@@ -18,6 +18,29 @@ export interface UseSpeechRecognitionReturn {
   reset: () => void;
 }
 
+// Web Speech API 타입 선언 (TypeScript 빌드 호환)
+type SpeechRecognitionConstructor = new () => {
+  lang: string;
+  continuous: boolean;
+  interimResults: boolean;
+  maxAlternatives: number;
+  onstart: (() => void) | null;
+  onend: (() => void) | null;
+  onerror: (() => void) | null;
+  onresult: ((event: SpeechRecognitionResultEvent) => void) | null;
+  start: () => void;
+  stop: () => void;
+};
+
+interface SpeechRecognitionResultEvent {
+  results: {
+    length: number;
+    [index: number]: { [index: number]: { transcript: string } };
+  };
+}
+
+type SpeechRecognitionInstance = InstanceType<SpeechRecognitionConstructor>;
+
 function normalizeWords(text: string): string[] {
   return text
     .toLowerCase()
@@ -38,7 +61,7 @@ export function useSpeechRecognition(): UseSpeechRecognitionReturn {
   const [transcript, setTranscript] = useState("");
   const [wordResults, setWordResults] = useState<WordResult[]>([]);
   const [isSupported, setIsSupported] = useState(false);
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
   const targetWordsRef = useRef<string[]>([]);
 
   useEffect(() => {
@@ -54,7 +77,6 @@ export function useSpeechRecognition(): UseSpeechRecognitionReturn {
     setIsListening(false);
   }, []);
 
-  /** pending 상태 단어를 incorrect로 확정 — 사용자가 "다 말했어요" 눌렀을 때만 호출 */
   const finalize = useCallback(() => {
     setWordResults((prev) =>
       prev.map((r) =>
@@ -79,23 +101,17 @@ export function useSpeechRecognition(): UseSpeechRecognitionReturn {
       recognitionRef.current?.stop();
       recognitionRef.current = null;
 
-      const SpeechRecognitionClass =
-        (window as Window & {
-          SpeechRecognition?: typeof SpeechRecognition;
-          webkitSpeechRecognition?: typeof SpeechRecognition;
-        }).SpeechRecognition ??
-        (window as Window & {
-          SpeechRecognition?: typeof SpeechRecognition;
-          webkitSpeechRecognition?: typeof SpeechRecognition;
-        }).webkitSpeechRecognition;
-
+      const w = window as Window & {
+        SpeechRecognition?: SpeechRecognitionConstructor;
+        webkitSpeechRecognition?: SpeechRecognitionConstructor;
+      };
+      const SpeechRecognitionClass = w.SpeechRecognition ?? w.webkitSpeechRecognition;
       if (!SpeechRecognitionClass) return;
 
       const normalized = normalizeWords(targetSentence);
       targetWordsRef.current = normalized;
 
-      // 초기: 모두 pending (빨간/파란색 없음)
-      setWordResults(normalized.map((w) => ({ word: w, status: "pending" })));
+      setWordResults(normalized.map((word) => ({ word, status: "pending" })));
       setTranscript("");
 
       const recognition = new SpeechRecognitionClass();
@@ -106,7 +122,7 @@ export function useSpeechRecognition(): UseSpeechRecognitionReturn {
 
       recognition.onstart = () => setIsListening(true);
 
-      recognition.onresult = (event: SpeechRecognitionEvent) => {
+      recognition.onresult = (event: SpeechRecognitionResultEvent) => {
         let fullTranscript = "";
         for (let i = 0; i < event.results.length; i++) {
           fullTranscript += event.results[i][0].transcript;
@@ -116,14 +132,8 @@ export function useSpeechRecognition(): UseSpeechRecognitionReturn {
         setWordResults(compareWords(targetWordsRef.current, spokenWords));
       };
 
-      // onend에서는 상태를 바꾸지 않음 — finalize()가 담당
-      recognition.onend = () => {
-        setIsListening(false);
-      };
-
-      recognition.onerror = () => {
-        setIsListening(false);
-      };
+      recognition.onend = () => setIsListening(false);
+      recognition.onerror = () => setIsListening(false);
 
       recognitionRef.current = recognition;
       recognition.start();
